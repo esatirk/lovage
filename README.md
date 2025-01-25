@@ -59,11 +59,21 @@ Lovage is a modern web application that combines torrent search and streaming ca
 
 ### Torrent Search Engine
 
-- **Multi-Source Search**: Search across multiple torrent sources (YTS, The Pirate Bay)
+- **Multi-Source Search**: Search across multiple torrent sources:
+
+  - YTS (Movies only, high quality)
+  - The Pirate Bay (Wide variety)
+  - 1337x (Large selection)
+  - RARBG (Quality releases)
+
 - **Advanced Filtering**:
+
   - Source selection
   - Minimum seeders filter
   - Multiple sorting options (seeders, leechers, size, name)
+  - Quality filters
+  - Size filters
+
 - **Smart UI Features**:
   - Infinite scroll loading
   - Real-time search results
@@ -103,28 +113,35 @@ Lovage is a modern web application that combines torrent search and streaming ca
 
 - **API Routes**: Next.js API Routes
 - **Torrent Client**: WebTorrent
+- **Movie Data**: TMDB API
 - **Torrent Search**: Custom API integrations
 
 ## Project Structure
 
-\`\`\`
+```plaintext
 src/
-├── app/ # Next.js app directory
-│ ├── api/ # API routes
-│ │ └── search/ # Torrent search endpoints
-│ ├── dev/ # Development routes
-│ │ ├── streamtest/ # Streaming test page
-│ │ └── torrent-search-engine/ # Search interface
-│ └── page.tsx # Home page
-├── components/ # React components
-│ ├── ui/ # UI components (shadcn)
-│ └── common/ # Shared components
-├── lib/ # Utilities
-│ ├── api/ # API related functions
-│ └── utils/ # Helper functions
-├── types/ # TypeScript types
-└── styles/ # Global styles
-\`\`\`
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   │   └── search/        # Torrent search endpoints
+│   ├── dev/              # Development routes
+│   │   ├── streamtest/   # Streaming test page
+│   │   └── torrent-search-engine/ # Search interface
+│   └── page.tsx          # Home page
+├── components/            # React components
+│   ├── dev-tools/        # Development tools
+│   ├── layout/           # Layout components
+│   ├── movies/           # Movie-related components
+│   ├── settings/         # Settings components
+│   └── ui/               # UI components (shadcn)
+├── hooks/                # Custom React hooks
+├── lib/                  # Core utilities
+│   ├── api/             # API related functions
+│   ├── tmdb/            # TMDB API integration
+│   ├── torrent-search/  # Torrent search providers
+│   └── utils/           # Helper functions
+├── styles/               # Global styles
+└── types/               # TypeScript types
+```
 
 ## Core Components
 
@@ -192,13 +209,20 @@ cd lovage
 npm install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+
+```bash
+cp .env.example .env.local
+# Edit .env.local with your TMDB API key
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Usage
 
@@ -273,4 +297,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Next.js](https://nextjs.org/) for the amazing framework
 - [shadcn/ui](https://ui.shadcn.com/) for beautiful UI components
 - [WebTorrent](https://webtorrent.io/) for the streaming capabilities
-- [YTS](https://yts.mx/) and [The Pirate Bay](https://thepiratebay.org/) for their APIs
+- [TMDB](https://www.themoviedb.org/) for the movie database
+- [YTS](https://yts.mx/), [The Pirate Bay](https://thepiratebay.org/), [1337x](https://1337x.to/), and [RARBG](https://rarbg.to/) for their content

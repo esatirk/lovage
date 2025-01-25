@@ -1,57 +1,117 @@
 "use client";
 
-import { Home, Compass, TrendingUp, Heart, Settings } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Home, Search, Heart, Settings, Film, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { TorrentTestModal } from "@/components/dev-tools/torrent-test-modal";
+import { SettingsModal } from "@/components/settings/settings-modal";
 
-const navigationItems = [
-  { icon: Home, label: "Home", href: "/" },
-  { icon: Compass, label: "Discover", href: "/discover" },
-  { icon: TrendingUp, label: "Trending", href: "/trending" },
-  { icon: Heart, label: "Favorites", href: "/favorites" },
-  { icon: Settings, label: "Settings", href: "/settings" },
-] as const;
+const sidebarItems = [
+  {
+    icon: Home,
+    label: "Home",
+    href: "/",
+  },
+  {
+    icon: Search,
+    label: "Discover",
+    href: "/discover",
+  },
+  {
+    icon: Heart,
+    label: "Favorites",
+    href: "/favorites",
+  },
+  {
+    icon: Film,
+    label: "Watchlist",
+    href: "/watchlist",
+  },
+];
+
+// Dev-only items
+const devItems = [
+  {
+    icon: Wrench,
+    label: "Test Torrents",
+    onClick: (setOpen: (open: boolean) => void) => setOpen(true),
+    devOnly: true,
+  },
+];
 
 export function Sidebar() {
+  const pathname = usePathname();
+  const [isTorrentTestOpen, setIsTorrentTestOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   return (
-    <div className="fixed inset-y-0 left-0 w-20 bg-gradient-to-b from-black/80 via-black/40 to-black/80 backdrop-blur-xl z-50">
-      <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] to-transparent opacity-50" />
-      <div className="absolute inset-0 bg-grid-white/[0.01]" />
+    <>
+      <aside className="fixed left-0 top-0 bottom-0 w-20 group hover:w-64 bg-black/50 backdrop-blur-xl border-r border-white/10 transition-[width] duration-300 z-[100]">
+        {/* Navigation */}
+        <nav className="flex flex-col items-center w-full h-full py-8">
+          {/* Logo */}
+          <div className="w-full px-6 mb-8">
+            <div className="w-8 h-8 rounded-full bg-white/10" />
+          </div>
 
-      <nav className="relative h-full flex flex-col items-center justify-center gap-8">
-        {navigationItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className="group relative flex items-center"
-          >
-            {/* Tooltip */}
-            <div
-              className="absolute left-16 px-3 py-2 rounded-lg bg-black/90 backdrop-blur-sm 
-                          opacity-0 translate-x-2 invisible
-                          group-hover:opacity-100 group-hover:translate-x-0 group-hover:visible
-                          transition-all duration-200 whitespace-nowrap z-50"
+          {/* Menu Items */}
+          <div className="flex-1 w-full">
+            {sidebarItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-4 px-6 py-3 w-full text-sm text-white/70 hover:text-white transition-colors",
+                  pathname === item.href && "text-white bg-white/10"
+                )}
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          {/* Bottom Items (Settings and Dev Tools) */}
+          <div className="flex flex-col items-center w-full gap-2">
+            {process.env.NODE_ENV === "development" &&
+              devItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => item.onClick(setIsTorrentTestOpen)}
+                  className="flex items-center gap-4 px-6 py-3 w-full text-sm text-white/70 hover:text-white transition-colors"
+                >
+                  <item.icon className="w-5 h-5 shrink-0" />
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {item.label}
+                  </span>
+                </button>
+              ))}
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className={cn(
+                "flex items-center gap-4 px-6 py-3 w-full text-sm text-white/70 hover:text-white transition-colors"
+              )}
             >
-              <span className="text-sm font-medium text-white">
-                {item.label}
+              <Settings className="w-5 h-5 shrink-0" />
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                Settings
               </span>
-              <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-black/90" />
-            </div>
+            </button>
+          </div>
+        </nav>
+      </aside>
 
-            {/* Icon Container */}
-            <div
-              className="relative w-20 h-12 flex items-center justify-center group-hover:text-white 
-                          text-white/50 transition-colors duration-200"
-            >
-              <div className="absolute inset-x-6 h-12 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm rounded-xl" />
-                <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-transparent rounded-xl" />
-              </div>
-              <item.icon className="relative w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
-            </div>
-          </Link>
-        ))}
-      </nav>
-    </div>
+      <TorrentTestModal
+        open={isTorrentTestOpen}
+        onOpenChange={setIsTorrentTestOpen}
+      />
+
+      <SettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+    </>
   );
 }
