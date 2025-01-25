@@ -14,7 +14,8 @@ export function formatBytes(bytes: number): string {
 }
 
 export function formatDuration(ms: number): string {
-  if (!ms || ms === Infinity) return "Unknown";
+  if (!ms || ms === Infinity) return "calculating...";
+
   const seconds = Math.floor(ms / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);

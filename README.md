@@ -6,6 +6,57 @@ Lovage is a modern web application that combines torrent search and streaming ca
 
 ## Features
 
+### Movie Discovery
+
+- **Advanced Search**:
+
+  - High-quality movie results
+  - Poster previews in search
+  - IMDb ratings integration
+  - Smart filtering (100+ votes required)
+  - Real-time search with debouncing
+  - Loading states with skeletons
+
+- **Movie Categories**:
+
+  - Popular movies section
+  - Action movies collection
+  - Thriller movies showcase
+  - Dynamic loading states
+  - Hover effects with ratings
+
+- **Hero Section**:
+  - Daily featured movie
+  - High-resolution backdrop
+  - Movie details overlay
+  - Watch & Info buttons
+  - Rating display
+
+### UI/UX Features
+
+- **Modern Navigation**:
+
+  - Elegant sidebar design
+  - Tooltip-style labels
+  - Smooth hover transitions
+  - Fixed position icons
+  - Non-intrusive layout
+
+- **Loading States**:
+
+  - Skeleton loaders for movies
+  - Smooth transitions
+  - Loading indicators
+  - Placeholder content
+  - Graceful error states
+
+- **Debug Tools**:
+  - Real-time logging
+  - Action tracking
+  - Error monitoring
+  - Clear log history
+  - Collapsible panel
+
 ### Torrent Search Engine
 
 - **Multi-Source Search**: Search across multiple torrent sources (YTS, The Pirate Bay)
@@ -26,6 +77,16 @@ Lovage is a modern web application that combines torrent search and streaming ca
 - **Video Player Controls**: Full video player functionality
 - **Stream Status**: Real-time download status and progress
 - **Magnet URI Support**: Direct streaming from magnet links
+
+### UI Components
+
+- **Modern Sidebar Navigation**:
+  - Elegant frosted glass design
+  - Smooth hover animations
+  - Responsive layout
+  - Intuitive navigation icons
+  - Clean and minimal interface
+  - Seamless transitions
 
 ## Technical Stack
 
@@ -119,20 +180,23 @@ src/
 ### Installation
 
 1. Clone the repository:
-   \`\`\`bash
-   git clone https://github.com/esatirk/lovage.git
-   cd lovage
-   \`\`\`
+
+```bash
+git clone https://github.com/esatirk/lovage.git
+cd lovage
+```
 
 2. Install dependencies:
-   \`\`\`bash
-   npm install
-   \`\`\`
+
+```bash
+npm install
+```
 
 3. Run the development server:
-   \`\`\`bash
-   npm run dev
-   \`\`\`
+
+```bash
+npm run dev
+```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -159,17 +223,23 @@ src/
 
 1. Fork the repository
 2. Create your feature branch:
-   \`\`\`bash
-   git checkout -b feature/amazing-feature
-   \`\`\`
+
+```bash
+git checkout -b feature/amazing-feature
+```
+
 3. Commit your changes:
-   \`\`\`bash
-   git commit -m 'Add amazing feature'
-   \`\`\`
+
+```bash
+git commit -m 'Add amazing feature'
+```
+
 4. Push to the branch:
-   \`\`\`bash
-   git push origin feature/amazing-feature
-   \`\`\`
+
+```bash
+git push origin feature/amazing-feature
+```
+
 5. Open a Pull Request
 
 ## Development Guidelines

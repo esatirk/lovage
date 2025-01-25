@@ -380,9 +380,12 @@ export default function TorrentSearchPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() =>
-                                (window.location.href = `/dev/streamtest?magnet=${encodeURIComponent(
-                                  result.magnet!
-                                )}`)
+                                window.open(
+                                  `/dev/streamtest?magnet=${encodeURIComponent(
+                                    result.magnet!
+                                  )}`,
+                                  "_blank"
+                                )
                               }
                               className="hover:text-primary transition-colors"
                             >

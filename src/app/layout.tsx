@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import { DevNav } from "@/components/dev-nav";
 
 const inter = Inter({ subsets: ["latin"] });
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+});
 
 export const metadata: Metadata = {
   title: "Lovage - Stream Movies & TV Shows",
@@ -17,7 +21,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} min-h-screen bg-background`}>
+      <body
+        className={`${inter.className} ${montserrat.variable} min-h-screen bg-background`}
+      >
         <DevNav />
         {children}
       </body>
