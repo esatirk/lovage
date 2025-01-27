@@ -1,4 +1,4 @@
-import { YTSProvider } from "./providers/yts";
+import { YtsProvider } from "./providers/yts";
 import { PirateBayProvider } from "./providers/pirate-bay";
 import { L337xProvider } from "./providers/1337x";
 import { RarbgProvider } from "./providers/rarbg";
@@ -15,7 +15,7 @@ export interface TorrentInfo {
 }
 
 export interface TorrentSearchOptions {
-  title: string;
+  query?: string;
   year?: number;
   imdbId?: string;
 }
@@ -25,27 +25,50 @@ export interface TorrentProvider {
   search: (options: TorrentSearchOptions) => Promise<TorrentInfo[]>;
 }
 
-const providers: TorrentProvider[] = [
-  new YTSProvider(),
-  new PirateBayProvider(),
-  new L337xProvider(),
-  new RarbgProvider(),
-];
+export async function searchTorrents({
+  query,
+  year,
+  imdbId,
+}: TorrentSearchOptions): Promise<TorrentInfo[]> {
+  const providers = [
+    new PirateBayProvider(),
+    new YtsProvider(),
+    new L337xProvider(),
+    new RarbgProvider(),
+  ];
 
-export async function searchTorrents(
-  options: TorrentSearchOptions
-): Promise<TorrentInfo[]> {
-  const results = await Promise.all(
-    providers.map(async (provider) => {
-      try {
-        const torrents = await provider.search(options);
-        return torrents;
-      } catch (error) {
+  const searchPromises = providers.map((provider) =>
+    provider
+      .search({ query: query || "", year, imdbId })
+      .then((results) => {
+        const filteredResults = results.filter((result) => {
+          const title = result.title.toLowerCase();
+          const searchQuery = (query || "").toLowerCase();
+
+          const queryWords = searchQuery.split(" ").filter(Boolean);
+          return queryWords.every((word) => title.includes(word));
+        });
+
+        return filteredResults.map((result) => ({
+          ...result,
+          source: provider.name,
+        }));
+      })
+      .catch((error) => {
         console.error(`Error searching ${provider.name}:`, error);
         return [];
-      }
-    })
+      })
   );
 
-  return results.flat().sort((a, b) => b.seeders - a.seeders);
+  const results = await Promise.all(searchPromises);
+
+  const allResults = results.flat();
+
+  return allResults.sort((a, b) => {
+    if (a.source === "The Pirate Bay" && b.source !== "The Pirate Bay")
+      return -1;
+    if (a.source !== "The Pirate Bay" && b.source === "The Pirate Bay")
+      return 1;
+    return b.seeders - a.seeders;
+  });
 }

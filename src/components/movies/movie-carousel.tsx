@@ -24,8 +24,6 @@ export function MovieCarousel({
   const containerRef = useRef<HTMLDivElement>(null);
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(true);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const handleScroll = () => {
     if (!containerRef.current) return;
@@ -36,9 +34,8 @@ export function MovieCarousel({
   };
 
   const scroll = (direction: "left" | "right") => {
-    if (!containerRef.current || isScrolling) return;
+    if (!containerRef.current) return;
 
-    setIsScrolling(true);
     const container = containerRef.current;
     const scrollAmount = container.clientWidth * 0.8;
     const targetScroll =
@@ -49,9 +46,6 @@ export function MovieCarousel({
       left: targetScroll,
       behavior: "smooth",
     });
-
-    // Reset scrolling state after animation
-    setTimeout(() => setIsScrolling(false), 500);
   };
 
   if (isLoading) {
@@ -78,13 +72,11 @@ export function MovieCarousel({
         <button
           onClick={() => scroll("left")}
           className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 z-[60]",
-            "w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/10",
+            "absolute -left-4 top-1/2 -translate-y-1/2 z-[70]",
+            "w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border border-white/10",
             "flex items-center justify-center",
             "hover:bg-black/70 transition-colors",
-            "opacity-0 group-hover/carousel:opacity-100 transition-opacity",
-            !showLeftButton && "hidden",
-            hoveredIndex !== null && "opacity-0 pointer-events-none"
+            !showLeftButton && "hidden"
           )}
           aria-label="Scroll left"
         >
@@ -93,13 +85,11 @@ export function MovieCarousel({
         <button
           onClick={() => scroll("right")}
           className={cn(
-            "absolute right-4 top-1/2 -translate-y-1/2 z-[60]",
-            "w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm border border-white/10",
+            "absolute -right-4 top-1/2 -translate-y-1/2 z-[70]",
+            "w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border border-white/10",
             "flex items-center justify-center",
             "hover:bg-black/70 transition-colors",
-            "opacity-0 group-hover/carousel:opacity-100 transition-opacity",
-            !showRightButton && "hidden",
-            hoveredIndex !== null && "opacity-0 pointer-events-none"
+            !showRightButton && "hidden"
           )}
           aria-label="Scroll right"
         >
@@ -110,7 +100,7 @@ export function MovieCarousel({
         <div
           ref={containerRef}
           onScroll={handleScroll}
-          className="flex gap-4 overflow-x-auto scrollbar-none scroll-smooth"
+          className="flex gap-4 overflow-x-hidden"
         >
           {movies.map((movie, index) => (
             <MovieCard
@@ -119,8 +109,6 @@ export function MovieCarousel({
               onMovieClick={onMovieClick}
               rank={showRank ? index + 1 : undefined}
               className="flex-shrink-0"
-              onHoverStart={() => setHoveredIndex(index)}
-              onHoverEnd={() => setHoveredIndex(null)}
             />
           ))}
         </div>

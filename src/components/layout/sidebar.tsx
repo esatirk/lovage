@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Search, Heart, Settings, Film, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { TorrentTestModal } from "@/components/dev-tools/torrent-test-modal";
+import TorrentTestModal from "@/components/dev-tools/torrent-test-modal";
 import { SettingsModal } from "@/components/settings/settings-modal";
 
 const sidebarItems = [

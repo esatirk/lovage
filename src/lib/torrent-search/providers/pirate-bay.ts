@@ -4,100 +4,106 @@ interface PirateBayTorrent {
   id: string;
   name: string;
   info_hash: string;
-  leechers: number;
-  seeders: number;
+  leechers: string;
+  seeders: string;
   num_files: number;
-  size: number;
+  size: string;
   username: string;
   added: number;
   status: string;
-  category: number;
+  category: string;
   imdb: string;
 }
 
 export class PirateBayProvider implements TorrentProvider {
   name = "The Pirate Bay";
-  private baseUrl = "https://apibay.org";
-  private corsProxies = [
-    "https://api.allorigins.win/raw?url=",
-    "https://api.codetabs.com/v1/proxy?quest=",
-    "https://cors-anywhere.herokuapp.com/",
-  ];
+
+  async search({
+    query = "",
+    year,
+  }: TorrentSearchOptions): Promise<TorrentInfo[]> {
+    const searchQuery = year ? `${query} ${year}` : query;
+    // Use category 207 for HD movies
+    const searchUrl = `https://apibay.org/q.php?q=${encodeURIComponent(
+      searchQuery
+    )}&cat=207`;
+
+    try {
+      const response = await fetch(searchUrl);
+      const data = (await response.json()) as PirateBayTorrent[];
+
+      if (!Array.isArray(data) || data.length === 0 || data[0].id === "0") {
+        console.log("No results from PirateBay for query:", searchQuery);
+        return [];
+      }
+
+      return data.map((item) => ({
+        title: item.name,
+        size: this.formatSize(parseInt(item.size)),
+        seeders: parseInt(item.seeders),
+        leechers: parseInt(item.leechers),
+        quality: this.extractQuality(item.name),
+        magnet: this.generateMagnetLink(item.info_hash, item.name),
+        source: this.name,
+        hash: item.info_hash,
+      }));
+    } catch (error) {
+      console.error("Error searching The Pirate Bay:", error);
+      return [];
+    }
+  }
 
   private formatSize(bytes: number): string {
-    const sizes = ["B", "KB", "MB", "GB", "TB"];
-    if (bytes === 0) return "0 B";
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let size = bytes;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size /= 1024;
+      unitIndex++;
+    }
+
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 
   private extractQuality(title: string): string {
     const qualities = [
+      "4K",
       "2160p",
       "1080p",
       "720p",
-      "480p",
       "HDRip",
       "BRRip",
-      "DVDRip",
       "BluRay",
       "WEB-DL",
-      "WEBRip",
+      "HDTV",
     ];
-    for (const quality of qualities) {
-      if (title.toLowerCase().includes(quality.toLowerCase())) {
-        return quality;
-      }
-    }
-    return "Unknown";
+    const found = qualities.find((q) =>
+      title.toUpperCase().includes(q.toUpperCase())
+    );
+    return found || "Unknown";
   }
 
-  private async tryProxies(url: string): Promise<Response> {
-    for (const proxy of this.corsProxies) {
-      try {
-        const response = await fetch(proxy + encodeURIComponent(url), {
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-          },
-        });
-        if (response.ok) {
-          return response;
-        }
-      } catch (error) {
-        console.warn(`Proxy ${proxy} failed:`, error);
-        continue;
-      }
-    }
-    throw new Error("All proxies failed");
-  }
+  private generateMagnetLink(hash: string, name: string): string {
+    const trackers = [
+      "udp://tracker.coppersurfer.tk:6969/announce",
+      "udp://9.rarbg.to:2920/announce",
+      "udp://tracker.opentrackr.org:1337",
+      "udp://tracker.internetwarriors.net:1337/announce",
+      "udp://tracker.leechers-paradise.org:6969/announce",
+      "udp://tracker.pirateparty.gr:6969/announce",
+      "udp://tracker.cyberia.is:6969/announce",
+      "wss://tracker.btorrent.xyz",
+      "wss://tracker.openwebtorrent.com",
+      "wss://tracker.webtorrent.dev",
+    ];
 
-  async search({ title, year }: TorrentSearchOptions): Promise<TorrentInfo[]> {
-    try {
-      const searchTerm = year ? `${title} ${year}` : title;
-      const query = `${this.baseUrl}/q.php?q=${encodeURIComponent(searchTerm)}&cat=207`;
+    const trackersString = trackers
+      .map((tracker) => `&tr=${encodeURIComponent(tracker)}`)
+      .join("");
 
-      const response = await this.tryProxies(query);
-      const data: PirateBayTorrent[] = await response.json();
-
-      if (!Array.isArray(data) || data.length === 0) {
-        return [];
-      }
-
-      // Filter out non-movie torrents and those with no seeders
-      return data
-        .filter((torrent) => torrent.seeders > 0)
-        .map((torrent) => ({
-          title: torrent.name,
-          size: this.formatSize(torrent.size),
-          seeders: torrent.seeders,
-          leechers: torrent.leechers,
-          quality: this.extractQuality(torrent.name),
-          source: this.name,
-          hash: torrent.info_hash,
-        }));
-    } catch (error) {
-      console.error("Pirate Bay search error:", error);
-      return [];
-    }
+    return `magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(
+      name
+    )}${trackersString}`;
   }
 }

@@ -43,6 +43,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInView } from "react-intersection-observer";
+import { useRouter } from "next/navigation";
+import { useDebugLogs } from "@/hooks/use-debug-logs";
+import { searchTorrents } from "@/lib/torrent-search";
 
 interface TorrentResult {
   name: string;
@@ -52,7 +55,8 @@ interface TorrentResult {
   magnet?: string;
   link?: string;
   source: string;
-  url: string;
+  quality?: string;
+  hash?: string;
 }
 
 type SourceType = "YTS" | "PirateBay";
@@ -63,6 +67,8 @@ type SortOrder = "asc" | "desc";
 const ITEMS_PER_PAGE = 20;
 
 export default function TorrentSearchPage() {
+  const router = useRouter();
+  const { addLog } = useDebugLogs();
   const [query, setQuery] = useState("");
   const [allResults, setAllResults] = useState<TorrentResult[]>([]);
   const [displayedResults, setDisplayedResults] = useState<TorrentResult[]>([]);
@@ -78,27 +84,40 @@ export default function TorrentSearchPage() {
   const [page, setPage] = useState(1);
   const { ref, inView } = useInView();
 
-  const searchTorrents = async (
-    searchQuery: string
-  ): Promise<TorrentResult[]> => {
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+
+    setLoading(true);
+    setPage(1);
+    addLog(`Searching torrents for: ${query}`);
+
     try {
-      const providers = Object.entries(enabledSources)
-        .filter(([, enabled]) => enabled)
-        .map(([provider]) => provider);
+      const torrents = await searchTorrents({
+        title: query,
+        year: minSeeders ? parseInt(minSeeders.toString()) : undefined,
+      });
 
-      const response = await fetch(
-        `/api/search?query=${encodeURIComponent(searchQuery)}&providers=${providers.join(",")}`
-      );
+      const results: TorrentResult[] = torrents.map((t) => ({
+        name: t.title,
+        size: t.size,
+        seeders: t.seeders,
+        leechers: t.leechers,
+        magnet: t.magnet,
+        source: t.source,
+        quality: t.quality,
+        hash: t.hash,
+      }));
 
-      if (!response.ok) {
-        throw new Error("Search failed");
-      }
-
-      const data = await response.json();
-      return data;
+      setAllResults(results);
+      setDisplayedResults(results.slice(0, ITEMS_PER_PAGE));
+      addLog(`Found ${results.length} torrents`);
     } catch (error) {
-      console.error("Error searching torrents:", error);
-      return [];
+      console.error("Torrent search error:", error);
+      addLog(`Torrent search error: ${error}`, "error");
+      setAllResults([]);
+      setDisplayedResults([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,6 +126,7 @@ export default function TorrentSearchPage() {
       await navigator.clipboard.writeText(magnet);
       setCopiedIndex(index);
       setTimeout(() => setCopiedIndex(null), 2000);
+      addLog(`Copied hash: ${magnet}`);
     } catch (error) {
       console.error("Failed to copy:", error);
     }
@@ -120,21 +140,9 @@ export default function TorrentSearchPage() {
     }
   };
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-
-    setLoading(true);
-    setPage(1);
-    try {
-      const results = await searchTorrents(query);
-      setAllResults(results);
-      setDisplayedResults(results.slice(0, ITEMS_PER_PAGE));
-    } catch (error) {
-      console.error("Search failed:", error);
-      setAllResults([]);
-      setDisplayedResults([]);
-    } finally {
-      setLoading(false);
+  const handleStream = (magnet: string | undefined) => {
+    if (magnet) {
+      router.push(`/dev/torrent-streamer?magnet=${encodeURIComponent(magnet)}`);
     }
   };
 
@@ -362,14 +370,19 @@ export default function TorrentSearchPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => window.open(result.url, "_blank")}
+                            onClick={() => {
+                              if (result.magnet) {
+                                window.open(result.magnet, "_blank");
+                                addLog(`Opened magnet link: ${result.magnet}`);
+                              }
+                            }}
                             className="hover:text-primary transition-colors"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>Visit Official Site</p>
+                          <p>Open Magnet Link</p>
                         </TooltipContent>
                       </Tooltip>
 
@@ -379,14 +392,7 @@ export default function TorrentSearchPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() =>
-                                window.open(
-                                  `/dev/streamtest?magnet=${encodeURIComponent(
-                                    result.magnet!
-                                  )}`,
-                                  "_blank"
-                                )
-                              }
+                              onClick={() => handleStream(result.magnet)}
                               className="hover:text-primary transition-colors"
                             >
                               <Play className="w-4 h-4" />

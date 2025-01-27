@@ -39,45 +39,60 @@ interface YTSResponse {
   };
 }
 
-export class YTSProvider implements TorrentProvider {
+export class YtsProvider implements TorrentProvider {
   name = "YTS";
-  private baseUrl = "https://yts.mx/api/v2";
 
   async search({
-    title,
+    query = "",
     year,
-    imdbId,
   }: TorrentSearchOptions): Promise<TorrentInfo[]> {
+    const searchUrl = `https://yts.mx/api/v2/list_movies.json?query_term=${encodeURIComponent(
+      query
+    )}${year ? `&year=${year}` : ""}`;
+
     try {
-      let query = `${this.baseUrl}/list_movies.json?query_term=${encodeURIComponent(
-        imdbId || title
-      )}`;
-
-      if (year) {
-        query += `&year=${year}`;
-      }
-
-      const response = await fetch(query);
-      const data: YTSResponse = await response.json();
+      const response = await fetch(searchUrl);
+      const data = (await response.json()) as YTSResponse;
 
       if (data.status !== "ok" || !data.data.movies) {
         return [];
       }
 
-      return data.data.movies.flatMap((movie) =>
+      return data.data.movies.flatMap((movie: YTSMovie) =>
         movie.torrents.map((torrent) => ({
-          title: `${movie.title} (${movie.year}) ${torrent.quality} ${torrent.type}`,
+          title: `${movie.title} ${movie.year} ${torrent.quality}`,
           size: torrent.size,
           seeders: torrent.seeds,
           leechers: torrent.peers,
           quality: torrent.quality,
+          magnet: this.generateMagnetLink(torrent.hash, movie.title),
           source: this.name,
-          hash: torrent.hash,
         }))
       );
     } catch (error) {
-      console.error("YTS search error:", error);
+      console.error("Error searching YTS:", error);
       return [];
     }
+  }
+
+  private generateMagnetLink(hash: string, title: string): string {
+    const trackers = [
+      "udp://open.demonii.com:1337/announce",
+      "udp://tracker.openbittorrent.com:80",
+      "udp://tracker.coppersurfer.tk:6969",
+      "udp://glotorrents.pw:6969/announce",
+      "udp://tracker.opentrackr.org:1337/announce",
+      "udp://torrent.gresille.org:80/announce",
+      "udp://p4p.arenabg.com:1337",
+      "udp://tracker.leechers-paradise.org:6969",
+    ];
+
+    const trackersString = trackers
+      .map((tracker) => `&tr=${encodeURIComponent(tracker)}`)
+      .join("");
+
+    return `magnet:?xt=urn:btih:${hash}&dn=${encodeURIComponent(
+      title
+    )}${trackersString}`;
   }
 }

@@ -28,7 +28,6 @@ export function MovieCard({
   onHoverEnd,
 }: MovieCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-
   const hours = runtime ? Math.floor(runtime / 60) : 0;
   const minutes = runtime ? runtime % 60 : 0;
 
@@ -46,7 +45,7 @@ export function MovieCard({
     <motion.div
       className={cn(
         "relative isolate group/card",
-        "w-[180px] transition-[width] duration-300 ease-out",
+        "w-[180px] transition-[width] duration-150 ease-out",
         isHovered && "w-[500px] z-50",
         className
       )}
@@ -57,14 +56,14 @@ export function MovieCard({
       {/* Card Container */}
       <div
         className={cn(
-          "relative overflow-hidden rounded-xl transition-all duration-300 ease-out",
+          "relative overflow-hidden rounded-xl transition-all duration-150 ease-out",
           isHovered ? "aspect-[2/1.2]" : "aspect-[2/3]"
         )}
       >
         {/* Poster Image (Default View) */}
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-300",
+            "absolute inset-0 transition-opacity duration-150",
             isHovered ? "opacity-0" : "opacity-100"
           )}
         >
@@ -80,7 +79,7 @@ export function MovieCard({
         {/* Backdrop Image (Hover View) */}
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-300",
+            "absolute inset-0 transition-opacity duration-150",
             isHovered ? "opacity-100" : "opacity-0"
           )}
         >
@@ -121,7 +120,7 @@ export function MovieCard({
           {/* Extended Info (Hover) */}
           <div
             className={cn(
-              "overflow-hidden transition-all duration-300",
+              "overflow-hidden transition-all duration-150",
               isHovered ? "h-[220px] opacity-100 mt-4" : "h-0 opacity-0"
             )}
           >
